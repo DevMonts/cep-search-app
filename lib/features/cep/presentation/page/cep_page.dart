@@ -1,5 +1,8 @@
 import 'package:cep/common/constants/app_strings.dart';
+import 'package:cep/features/cep/data/model/cep_model.dart';
+import 'package:cep/features/cep/data/repository/cep_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 class CepPage extends StatefulWidget {
   const CepPage({super.key, required this.title});
@@ -20,6 +23,9 @@ class CepPage extends StatefulWidget {
 }
 
 class _CepPageState extends State<CepPage> {
+  final cepRepository = CepRepository(httpClient: Client());
+  final cepController = TextEditingController();
+  CepModel? cepDetails;
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -42,9 +48,46 @@ class _CepPageState extends State<CepPage> {
                       border: OutlineInputBorder(),
                       labelText: AppStrings.cepLabel,
                     ),
+                    controller: cepController,
                   ),
                 ),
-                IconButton(onPressed: null, icon: Icon(Icons.south_east)),
+                IconButton(
+                  onPressed: () async {
+                    final cep = await cepRepository.getCep(cepController.text);
+                    setState(() {
+                      cepDetails = cep;
+                    });
+                  },
+                  icon: Icon(Icons.south_east),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: Text(cepDetails?.uf ?? ''),
+            title: Text(
+              '${cepDetails?.complemento} - ${cepDetails?.logradouro} - ${cepDetails?.bairro} - ${cepDetails?.localidade} - ${cepDetails?.estado} - ${cepDetails?.regiao} - BR',
+            ),
+            subtitle: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text('Unidade: ${cepDetails?.unidade}'),
+                      Text('IBGE: ${cepDetails?.ibge}'),
+                      Text('GIA: ${cepDetails?.gia}'),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 100, child: VerticalDivider()),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text('DDD: ${cepDetails?.ddd}'),
+                      Text('SIAFI: ${cepDetails?.siafi}'),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
